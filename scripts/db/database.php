@@ -3,6 +3,7 @@ class Bit_db
 {
    private $table_webhook = "webhook";
    private $conn;
+   private $logger = Logger::getLogger("main");
    function __construct()
    {
       // load database connection settings
@@ -21,21 +22,37 @@ class Bit_db
    }
    public function addWebhook($statuses_url, $title, $number, $branch)
    {
-      $sql = "INSERT INTO $table_webhook (statuses_url, title, number, branch) ";
-      $sql .= "VALUES ('$statuses_url', '$title', '$number', $branch)";
+      switch ( substr($branch, 0, 4) )
+      {
+         case "feat":
+            $prio = 0;
+            break;
+         case "bugf":
+            $prio = 1;
+            break;
+         case "hotf":
+            $prio = 2;
+            break;
+         default:
+            $prio = -1;
+            break;
+      }
+      
+      $sql = "INSERT INTO $table_webhook (priority, statuses_url, title, number, branch) ";
+      $sql .= "VALUES ($prio, '$statuses_url', '$title', $number, '$branch')";
       
       // Check connection
       if ($conn->connect_error)
       {
-         die( "Connection failed: " . $conn->connect_error );
+         $logger->error( "Connection failed: " . $conn->connect_error );
       }
       elseif ($conn->query( $sql ) === TRUE)
       {
-         echo "New record created successfully";
+         $logger->debug("New record created successfully");
       }
       else
       {
-         echo "Error: " . $sql . "<br>" . $conn->error;
+         $logger->error("Error: " . $sql . "<br>" . $conn->error);
       }
    }
 }

@@ -1,5 +1,9 @@
 <?php
-include "database.php";
+include "scripts/db/database.php";
+include('Logger.php');
+
+// logging
+$logger = Logger::getLogger("main");
 
 // retrieve the request's body and parse it as JSON
 $body = @file_get_contents( 'php://input' );
@@ -20,5 +24,9 @@ if ($event_json['pull_request'] != '{}')
    $db = new Bit_db();
    
    $db->close();
-}
+} 
+else
+{
+   $logger->debug("Received unknown request: " + $body);
+} 
 ?>
